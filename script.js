@@ -54,6 +54,60 @@ function logout() {
     });
 }
 
+// ១. Function ស្វែងរកឈ្មោះគ្រូ (Dashboard)
+function filterTeachers() {
+    let input = document.getElementById("searchTeacher");
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById("teacherTable");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let td = tr[i].getElementsByTagName("td")[0]; // ជួរឈរឈ្មោះគ្រូ
+        if (td) {
+            let txtValue = td.textContent || td.innerText;
+            if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
+// ២. Function ស្វែងរកឈ្មោះសិស្ស (Student Records)
+function filterStudents() {
+    let input = document.getElementById("searchStudent");
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById("studentTable");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let tdName = tr[i].getElementsByTagName("td")[0]; // ជួរឈរឈ្មោះសិស្ស
+        let tdTeacher = tr[i].getElementsByTagName("td")[3]; // ជួរឈរឈ្មោះគ្រូ (ប្រសិនបើចង់ស្វែងរកតាមឈ្មោះគ្រូក្នុងតារាងសិស្សដែរ)
+        
+        if (tdName) {
+            let nameValue = tdName.textContent || tdName.innerText;
+            let teacherValue = tdTeacher ? (tdTeacher.textContent || tdTeacher.innerText) : "";
+            
+            if (nameValue.toLowerCase().indexOf(filter) > -1 || teacherValue.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
+// កុំភ្លេចបន្ថែម function ប្តូរ Section
+function showSection(section) {
+    document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+    document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
+}
+
+// បន្ថែម Logic ផ្សេងៗទៀតដែលអ្នកមានស្រាប់ (submitStudent, updateStats, etc.)
+
+
+
 // ៣. មុខងារ PRINT (តាមរូបភាពដែលបានកែសម្រួលចុងក្រោយ)
 function printReport() {
     const printWindow = window.open('', '', 'height=900,width=1100');
@@ -532,6 +586,7 @@ function printReceipt(index) {
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
 }
+
 
 
 

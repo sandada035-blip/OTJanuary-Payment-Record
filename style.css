@@ -216,4 +216,20 @@ body {
 }
 
 
+.search-container {
+    max-width: 250px;
+}
+.content-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.table thead th {
+    background-color: #f8f9fa;
+    color: #555;
+    font-weight: 600;
+}
+.app-navbar {
+    border-bottom: 1px solid #eee;
+}
 

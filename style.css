@@ -1,75 +1,174 @@
-:root { 
-    --primary: #4361ee; 
-    --secondary: #3f37c9;
-    --success: #2ec4b6;
-    --danger: #ef4444;
-    --bg-body: #f8f9fa;
-    --font-khmer: 'Noto Serif Khmer', serif;
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzIjImp2Ds_T96-bnLwhoH9Zm4asoJxOaOeqr1EOk9zq-Pqv6NwwcS3miCHc60xUgJo/exec";
+let allStudents = [];
+let currentUserRole = "User";
+let isEditMode = false;
+let originalName = "";
+const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
+
+// --- LOGIN ---
+async function login() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    
+    if(!u || !p) return Swal.fire('តម្រូវការ', 'សូមបញ្ចូលឈ្មោះ និងពាក្យសម្ងាត់', 'warning');
+    
+    Swal.fire({title: 'កំពុងផ្ទៀងផ្ទាត់...', didOpen: () => Swal.showLoading(), allowOutsideClick: false});
+    
+    const res = await callAPI('checkLogin', u, p); 
+    
+    if(res && res.success) {
+        currentUserRole = res.role;
+        document.getElementById('loginSection').classList.replace('d-flex', 'd-none');
+        document.getElementById('mainApp').style.display = 'block';
+        
+        applyPermissions();
+        showSection('dashboard');
+        Swal.close();
+    } else {
+        Swal.fire('បរាជ័យ', 'Username ឬ Password មិនត្រឹមត្រូវ', 'error');
+    }
 }
 
-body {
-    font-family: 'Khmer OS Siemreap', 'Inter', sans-serif;
-    background-color: var(--bg-body);
+function applyPermissions() {
+    const adminElements = document.querySelectorAll('.admin-only');
+    adminElements.forEach(el => {
+        el.style.setProperty('display', currentUserRole === 'Admin' ? 'inline-block' : 'none', 'important');
+    });
 }
 
-.fw-bold, h1, h2, h3, h4, h5, h6, .btn, .stat-card h3 {
-    font-family: 'Khmer OS Muol Light', sans-serif;
+function logout() { location.reload(); }
+
+// --- NAVIGATION ---
+function showSection(id) {
+    document.getElementById('dashboardSection').style.display = id === 'dashboard' ? 'block' : 'none';
+    document.getElementById('studentSection').style.display = id === 'students' ? 'block' : 'none';
+    if(id === 'dashboard') loadDashboard();
+    if(id === 'students') loadStudents();
 }
 
-/* Login */
-#loginSection {
-    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+// --- API CORE ---
+async function callAPI(funcName, ...args) {
+    const url = `${WEB_APP_URL}?func=${funcName}&args=${encodeURIComponent(JSON.stringify(args))}`;
+    try {
+        const response = await fetch(url);
+        return await response.json();
+    } catch (e) { return null; }
 }
 
-.login-container {
-    max-width: 400px;
-    width: 100%;
-    background: #fff;
-    border-radius: 15px;
+// --- DASHBOARD & DATA ---
+async function loadDashboard() {
+    document.getElementById('teacherBody').innerHTML = '<tr><td colspan="6" class="text-center">កំពុងទាញទិន្នន័យ...</td></tr>';
+    const res = await callAPI('getTeacherData');
+    if(!res) return;
+    
+    let totalStudents = 0, totalRev = 0;
+    let html = "";
+
+    res.rows.forEach(r => {
+        const count = parseInt(r[2]) || 0;
+        const fee = parseInt(r[3].toString().replace(/[^0-9]/g, '')) || 0;
+        totalStudents += count;
+        totalRev += fee;
+
+        html += `
+            <tr>
+                <td class="fw-bold text-primary">${r[0]}</td>
+                <td>${r[1]}</td>
+                <td>${count} នាក់</td>
+                <td class="fw-bold">${fee.toLocaleString()} ៛</td>
+                <td class="text-success">${(fee * 0.8).toLocaleString()} ៛</td>
+                <td class="text-danger">${(fee * 0.2).toLocaleString()} ៛</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('teacherBody').innerHTML = html;
+    document.getElementById('totalStudentsCount').innerText = totalStudents;
+    document.getElementById('totalRevenue').innerText = totalRev.toLocaleString() + " ៛";
+    document.getElementById('totalTeacherShare').innerText = (totalRev * 0.8).toLocaleString() + " ៛";
+    document.getElementById('totalSchoolShare').innerText = (totalRev * 0.2).toLocaleString() + " ៛";
 }
 
-.login-logo { width: 80px; height: 80px; object-fit: contain; }
-
-/* Dashboard Cards */
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.25rem;
-    border-left: 6px solid var(--primary);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    height: 100%;
+async function loadStudents() {
+    const loading = document.getElementById('studentLoading');
+    loading.classList.remove('d-none');
+    const res = await callAPI('getStudentData');
+    loading.classList.add('d-none');
+    if(!res) return;
+    
+    allStudents = res.rows;
+    document.getElementById('studentBody').innerHTML = allStudents.map((r, i) => `
+        <tr>
+            <td class="fw-bold text-primary">${r[0]}</td>
+            <td>${r[1]}</td>
+            <td>${r[2]}</td>
+            <td>${r[3]}</td>
+            <td class="fw-bold text-success">${r[4]}</td>
+            <td>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-info" onclick="printReceipt(${i})"><i class="bi bi-printer"></i></button>
+                    ${currentUserRole === 'Admin' ? `
+                        <button class="btn btn-sm btn-outline-warning" onclick="editStudent(${i})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(${i})"><i class="bi bi-trash"></i></button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
 }
 
-.stat-card h3 { font-size: 1.4rem; margin-top: 5px; }
-
-/* Tables & Boxes */
-.content-box {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    overflow: hidden;
+// --- CALCULATION & MODAL ---
+function calculateSplitPreview() {
+    const val = parseInt(document.getElementById('addFee').value) || 0;
+    document.getElementById('disp80').innerText = (val * 0.8).toLocaleString() + " ៛";
+    document.getElementById('disp20').innerText = (val * 0.2).toLocaleString() + " ៛";
 }
 
-.table th { font-size: 0.85rem; color: var(--primary); }
-
-/* Floating Action Button */
-.fab-btn {
-    position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
-    background: var(--primary); color: white; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-    border: none; box-shadow: 0 10px 20px rgba(67, 97, 238, 0.4); 
-    z-index: 1000; transition: transform 0.2s;
+function openStudentModal() {
+    isEditMode = false;
+    document.getElementById('modalTitle').innerText = "បញ្ចូលសិស្សថ្មី";
+    document.getElementById('addStudentName').value = "";
+    document.getElementById('addFee').value = "";
+    calculateSplitPreview();
+    studentModal.show();
 }
 
-.fab-btn:active { transform: scale(0.9); }
-
-@media (max-width: 576px) {
-    .stat-card h3 { font-size: 1.1rem; }
-    .table { font-size: 0.8rem; }
+function editStudent(index) {
+    isEditMode = true;
+    const r = allStudents[index];
+    originalName = r[0];
+    document.getElementById('modalTitle').innerText = "កែប្រែព័ត៌មាន";
+    document.getElementById('addStudentName').value = r[0];
+    document.getElementById('addGender').value = r[1];
+    document.getElementById('addGrade').value = r[2];
+    document.getElementById('addTeacherSelect').value = r[3];
+    document.getElementById('addFee').value = r[4].replace(/[^0-9]/g, '');
+    calculateSplitPreview();
+    studentModal.show();
 }
 
-@media print {
-    .no-print, .navbar, .fab-btn, .btn, #loginSection { display: none !important; }
-    body { background-color: white !important; }
-    .stat-card { border: 1px solid #ccc !important; }
+async function submitStudent() {
+    const name = document.getElementById('addStudentName').value.trim();
+    const fee = document.getElementById('addFee').value;
+    if(!name || !fee) return Swal.fire('Error', 'សូមបំពេញព័ត៌មាន', 'error');
+
+    const form = {
+        studentName: name, 
+        gender: document.getElementById('addGender').value,
+        grade: document.getElementById('addGrade').value, 
+        teacherName: document.getElementById('addTeacherSelect').value,
+        schoolFee: parseInt(fee).toLocaleString() + " ៛",
+        teacherFeeVal: (fee * 0.8).toLocaleString() + " ៛",
+        schoolFeeVal: (fee * 0.2).toLocaleString() + " ៛",
+        paymentDate: new Date().toISOString().split('T')[0]
+    };
+
+    Swal.fire({title: 'កំពុងរក្សាទុក...', didOpen: () => Swal.showLoading()});
+    const res = isEditMode ? await callAPI('updateStudentData', originalName, form) : await callAPI('saveStudentToTeacherSheet', form);
+    
+    if(res && res.success) {
+        studentModal.hide();
+        loadStudents();
+        Swal.fire('ជោគជ័យ', res.message, 'success');
+    }
 }

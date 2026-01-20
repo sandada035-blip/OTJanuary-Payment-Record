@@ -1,24 +1,27 @@
+// ១. ការប្រកាស Variable និងទាញទិន្នន័យពី LocalStorage
 let students = JSON.parse(localStorage.getItem('schoolData')) || [];
-const modal = new bootstrap.Modal(document.getElementById('studentModal'));
+const studentModalElement = document.getElementById('studentModal');
+const modal = new bootstrap.Modal(studentModalElement);
 
-// បង្ហាញទិន្នន័យពេល Load កម្មវិធី
+// ២. បង្ហាញទិន្នន័យភ្លាមៗពេលបើកកម្មវិធី (បើធ្លាប់ Login រួច)
 window.onload = () => {
-    if(localStorage.getItem('isLoggedIn') === 'true') {
+    if (localStorage.getItem('isLoggedIn') === 'true') {
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         renderAll();
     }
 };
 
-// ១. មុខងារ Login
+// ៣. មុខងារ Login
 function login() {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
 
     if (user === "admin" && pass === "123") {
-        document.getElementById('loginSection').classList.add('d-none');
+        localStorage.setItem('isLoggedIn', 'true'); // រក្សាទុកស្ថានភាព Login
+        document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        renderAll(); // បង្ហាញទិន្នន័យបន្ទាប់ពីចូល
+        renderAll();
     } else {
         Swal.fire({
             icon: 'error',
@@ -29,58 +32,35 @@ function login() {
     }
 }
 
-// ២. មុខងារ Logout
+// ៤. មុខងារ Logout
 function logout() {
+    localStorage.removeItem('isLoggedIn');
     location.reload();
 }
 
-// ៣. មុខងារស្វែងរក (Filter)
-function filterTable(tableId, colIndex) {
-    let input = event.target;
-    let filter = input.value.toLowerCase();
-    let table = document.getElementById(tableId);
-    let tr = table.getElementsByTagName("tr");
-
-    for (let i = 1; i < tr.length; i++) {
-        let td = tr[i].getElementsByTagName("td")[colIndex];
-        if (td) {
-            let txtValue = td.textContent || td.innerText;
-            tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? "" : "none";
-        }
-    }
-}
-
-// ៤. ប្តូរផ្នែក (Dashboard / Students)
+// ៥. មុខងារគ្រប់គ្រងការបង្ហាញ Section (Dashboard / Students)
 function showSection(section) {
     document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
     document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
 }
 
-// ៥. បន្ថែមទិន្នន័យសាកល្បងសម្រាប់តេស្ត
-function renderAll() {
-    const studentBody = document.getElementById('studentBody');
-    // ឧទាហរណ៍ទិន្នន័យ
-    studentBody.innerHTML = `
-        <tr><td>សុខ ជា</td><td>ប្រុស</td><td>១២A</td><td>កែមលៀងគា</td><td>40,000 ៛</td><td><button class="btn btn-sm btn-danger">លុប</button></td></tr>
-    `;
-    
-    document.getElementById('statsRow').innerHTML = `
-        <div class="col-md-4"><div class="card p-3 text-center shadow-sm"><h6>សិស្សសរុប</h6><h4>1 នាក់</h4></div></div>
-    `;
-}
-
+// ៦. មុខងារគណនាភាគរយ ៨០% និង ២០% ក្នុង Modal
 function calculateSplit() {
-    const fee = document.getElementById('addFee').value || 0;
+    const fee = parseFloat(document.getElementById('addFee').value) || 0;
     document.getElementById('disp80').innerText = (fee * 0.8).toLocaleString() + " ៛";
     document.getElementById('disp20').innerText = (fee * 0.2).toLocaleString() + " ៛";
 }
 
+// ៧. មុខងារបើក Modal បន្ថែមសិស្ស
 function openStudentModal() {
     document.getElementById('addStudentName').value = '';
     document.getElementById('addFee').value = '';
+    document.getElementById('disp80').innerText = '0 ៛';
+    document.getElementById('disp20').innerText = '0 ៛';
     modal.show();
 }
 
+// ៨. មុខងាររក្សាទុកសិស្សថ្មី
 function submitStudent() {
     const name = document.getElementById('addStudentName').value;
     const gender = document.getElementById('addGender').value;
@@ -88,78 +68,35 @@ function submitStudent() {
     const teacher = document.getElementById('addTeacherSelect').value;
     const fee = parseFloat(document.getElementById('addFee').value) || 0;
 
-    if(!name || !fee) return Swal.fire('បំពេញព័ត៌មាន', 'សូមបំពេញឈ្មោះ និងតម្លៃ', 'warning');
+    if (!name || !fee) {
+        return Swal.fire('បំពេញព័ត៌មាន', 'សូមបំពេញឈ្មោះ និងតម្លៃសិក្សា', 'warning');
+    }
 
     students.push({ name, gender, grade, teacher, fee });
     saveData();
     modal.hide();
     renderAll();
-}
-
-function saveData() {
-    localStorage.setItem('schoolData', JSON.stringify(students));
-}
-
-function renderAll() {
-    renderStudents();
-    renderTeachers();
-    renderStats();
-}
-
-function renderStudents() {
-    const body = document.getElementById('studentBody');
-    body.innerHTML = students.map((s, index) => `
-        <tr>
-            <td>${s.name}</td>
-            <td>${s.gender === 'Male' ? 'ប្រុស' : 'ស្រី'}</td>
-            <td>${s.grade}</td>
-            <td>${s.teacher}</td>
-            <td>${s.fee.toLocaleString()} ៛</td>
-            <td><button class="btn btn-sm btn-danger" onclick="deleteStudent(${index})"><i class="bi bi-trash"></i></button></td>
-        </tr>
-    `).join('');
-}
-
-function renderTeachers() {
-    const teacherMap = {};
-    students.forEach(s => {
-        if(!teacherMap[s.teacher]) teacherMap[s.teacher] = { name: s.teacher, count: 0, total: 0 };
-        teacherMap[s.teacher].count++;
-        teacherMap[s.teacher].total += s.fee;
+    
+    Swal.fire({
+        icon: 'success',
+        title: 'ជោគជ័យ',
+        text: 'បានរក្សាទុកទិន្នន័យសិស្សរួចរាល់',
+        timer: 1500,
+        showConfirmButton: false
     });
-
-    const body = document.getElementById('teacherBody');
-    body.innerHTML = Object.values(teacherMap).map(t => `
-        <tr>
-            <td>${t.name}</td>
-            <td>គ្រូបង្គោល</td>
-            <td>${t.count} នាក់</td>
-            <td>${t.total.toLocaleString()} ៛</td>
-            <td class="text-primary">${(t.total * 0.8).toLocaleString()} ៛</td>
-            <td class="text-danger">${(t.total * 0.2).toLocaleString()} ៛</td>
-        </tr>
-    `).join('');
 }
 
-function renderStats() {
-    const totalStudent = students.length;
-    const totalIncome = students.reduce((sum, s) => sum + s.fee, 0);
-    const schoolPart = totalIncome * 0.2;
-
-    document.getElementById('statsRow').innerHTML = `
-        <div class="col-md-4"><div class="card p-3 shadow-sm border-0 bg-primary text-white"><h6>សិស្សសរុប</h6><h3>${totalStudent} នាក់</h3></div></div>
-        <div class="col-md-4"><div class="card p-3 shadow-sm border-0 bg-success text-white"><h6>ចំណូលសរុប</h6><h3>${totalIncome.toLocaleString()} ៛</h3></div></div>
-        <div class="col-md-4"><div class="card p-3 shadow-sm border-0 bg-warning text-white"><h6>ចំណូលសាលា (20%)</h6><h3>${schoolPart.toLocaleString()} ៛</h3></div></div>
-    `;
-}
-
+// ៩. មុខងារលុបទិន្នន័យសិស្ស
 function deleteStudent(index) {
     Swal.fire({
         title: 'លុបទិន្នន័យ?',
         text: "តើអ្នកចង់លុបទិន្នន័យសិស្សនេះមែនទេ?",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'លុប'
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'លុបចេញ',
+        cancelButtonText: 'បោះបង់'
     }).then((result) => {
         if (result.isConfirmed) {
             students.splice(index, 1);
@@ -169,7 +106,94 @@ function deleteStudent(index) {
     });
 }
 
-// មុខងារ Search Filter
+// ១០. មុខងាររក្សាទុកទិន្នន័យចូល LocalStorage
+function saveData() {
+    localStorage.setItem('schoolData', JSON.stringify(students));
+}
+
+// ១១. មុខងារ Render បង្ហាញទិន្នន័យទាំងអស់
+function renderAll() {
+    renderStudents();
+    renderTeachers();
+    renderStats();
+}
+
+function renderStudents() {
+    const body = document.getElementById('studentBody');
+    if (!body) return;
+    
+    body.innerHTML = students.map((s, index) => `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.gender === 'Male' ? 'ប្រុស' : 'ស្រី'}</td>
+            <td>${s.grade}</td>
+            <td>${s.teacher}</td>
+            <td>${s.fee.toLocaleString()} ៛</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderTeachers() {
+    const teacherMap = {};
+    students.forEach(s => {
+        if (!teacherMap[s.teacher]) {
+            teacherMap[s.teacher] = { name: s.teacher, gender: 'គ្រូបង្គោល', count: 0, total: 0 };
+        }
+        teacherMap[s.teacher].count++;
+        teacherMap[s.teacher].total += s.fee;
+    });
+
+    const body = document.getElementById('teacherBody');
+    if (!body) return;
+
+    body.innerHTML = Object.values(teacherMap).map(t => `
+        <tr>
+            <td>${t.name}</td>
+            <td>${t.gender}</td>
+            <td>${t.count} នាក់</td>
+            <td>${t.total.toLocaleString()} ៛</td>
+            <td class="text-primary fw-bold">${(t.total * 0.8).toLocaleString()} ៛</td>
+            <td class="text-danger fw-bold">${(t.total * 0.2).toLocaleString()} ៛</td>
+        </tr>
+    `).join('');
+}
+
+function renderStats() {
+    const statsRow = document.getElementById('statsRow');
+    if (!statsRow) return;
+
+    const totalStudent = students.length;
+    const totalIncome = students.reduce((sum, s) => sum + s.fee, 0);
+    const schoolPart = totalIncome * 0.2;
+
+    statsRow.innerHTML = `
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0 bg-primary text-white text-center">
+                <h6 class="mb-1">សិស្សសរុប</h6>
+                <h3 class="fw-bold">${totalStudent} នាក់</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0 bg-success text-white text-center">
+                <h6 class="mb-1">ចំណូលសរុប</h6>
+                <h3 class="fw-bold">${totalIncome.toLocaleString()} ៛</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm border-0 bg-warning text-dark text-center">
+                <h6 class="mb-1">ចំណូលសាលា (20%)</h6>
+                <h3 class="fw-bold">${schoolPart.toLocaleString()} ៛</h3>
+            </div>
+        </div>
+    `;
+}
+
+// ១២. មុខងារស្វែងរក (Search Filter)
 function filterTable(tableId, colIndex) {
     const input = event.target;
     const filter = input.value.toLowerCase();
@@ -184,9 +208,3 @@ function filterTable(tableId, colIndex) {
         }
     }
 }
-
-function showSection(section) {
-    document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
-    document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
-}
-

@@ -8,11 +8,39 @@
 }
 
 /* មូលដ្ឋានគ្រឹះ */
-body { 
-    background-color: var(--bg-body); 
-    font-family: 'Inter', sans-serif; 
-    overflow-x: hidden; 
-    -webkit-tap-highlight-color: transparent; /* ដកពណ៌ខៀវពេលចុចលើ Mobile */
+body {
+    font-family: 'Khmer OS Siemreap', 'Inter', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.content-box {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.fab-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* រចនាបន្ថែមសម្រាប់ Mobile */
+@media (max-width: 576px) {
+    .search-input { width: 150px; }
 }
 
 /* ការរចនាផ្ទាំង Login */
@@ -186,5 +214,6 @@ body {
         print-color-adjust: exact !important;
     }
 }
+
 
 

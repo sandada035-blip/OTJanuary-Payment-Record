@@ -44,32 +44,51 @@
     </nav>
 
     <div id="dashboardSection" class="container-fluid p-3">
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-left-color: #4361ee;">
-                    <h6 class="text-muted small">សិស្សសរុប</h6>
-                    <h3 class="fw-bold mb-0" id="totalStudentsCount">0</h3>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-left-color: #4cc9f0;">
-                    <h6 class="text-muted small">ចំណូលសរុប</h6>
-                    <h3 class="fw-bold mb-0" id="totalRevenue">0 ៛</h3>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-left-color: #2ec4b6;">
-                    <h6 class="text-muted small">គ្រូ ៨០%</h6>
-                    <h4 class="fw-bold mb-0 text-success" id="totalTeacherShare">0 ៛</h4>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-left-color: #e71d36;">
-                    <h6 class="text-muted small">សាលា ២០%</h6>
-                    <h4 class="fw-bold mb-0 text-danger" id="totalSchoolShare">0 ៛</h4>
-                </div>
+    <div class="row g-3 mb-4" id="statsRow">
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color: #4361ee;">
+                <h6 class="text-muted small">សិស្សសរុប</h6>
+                <h3 class="fw-bold mb-0" id="totalStudentsCount">0</h3>
             </div>
         </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color: #10b981;">
+                <h6 class="text-muted small">ចំណូលសរុប</h6>
+                <h3 class="fw-bold mb-0" id="totalRevenue">0 ៛</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color: #f59e0b;">
+                <h6 class="text-muted small">គ្រូ ៨០%</h6>
+                <h3 class="fw-bold mb-0 text-primary" id="totalTeacherShare">0 ៛</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card" style="border-left-color: #ef4444;">
+                <h6 class="text-muted small">សាលា ២០%</h6>
+                <h3 class="fw-bold mb-0 text-danger" id="totalSchoolShare">0 ៛</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-box">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold m-0 text-primary">របាយការណ៍តាមគ្រូ</h6>
+            <div class="d-flex gap-2">
+                <input type="text" id="searchTeacher" class="form-control form-control-sm" placeholder="ស្វែងរកគ្រូ..." onkeyup="filterTeachers()">
+                <button class="btn btn-sm btn-dark" onclick="printReport()"><i class="bi bi-printer"></i></button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="teacherTable">
+                <thead class="table-light">
+                    <tr><th>គ្រូ</th><th>សិស្ស</th><th>សរុប</th><th>៨០%</th><th>២០%</th></tr>
+                </thead>
+                <tbody id="teacherBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
         <div class="content-box">
             <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
@@ -156,3 +175,4 @@
 <script src="script.js"></script>
 </body>
 </html>
+

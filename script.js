@@ -10,22 +10,63 @@ window.onload = () => {
     }
 };
 
+// ១. មុខងារ Login
 function login() {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
-    if(user === "admin" && pass === "123") {
-        localStorage.setItem('isLoggedIn', 'true');
-        document.getElementById('loginSection').style.display = 'none';
+
+    if (user === "admin" && pass === "123") {
+        document.getElementById('loginSection').classList.add('d-none');
         document.getElementById('mainApp').style.display = 'block';
-        renderAll();
+        renderAll(); // បង្ហាញទិន្នន័យបន្ទាប់ពីចូល
     } else {
-        Swal.fire('Error', 'ឈ្មោះ ឬលេខសម្ងាត់ខុស!', 'error');
+        Swal.fire({
+            icon: 'error',
+            title: 'ចូលមិនបានទេ',
+            text: 'ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ!',
+            confirmButtonText: 'ព្យាយាមម្តងទៀត'
+        });
     }
 }
 
+// ២. មុខងារ Logout
 function logout() {
-    localStorage.removeItem('isLoggedIn');
     location.reload();
+}
+
+// ៣. មុខងារស្វែងរក (Filter)
+function filterTable(tableId, colIndex) {
+    let input = event.target;
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById(tableId);
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let td = tr[i].getElementsByTagName("td")[colIndex];
+        if (td) {
+            let txtValue = td.textContent || td.innerText;
+            tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? "" : "none";
+        }
+    }
+}
+
+// ៤. ប្តូរផ្នែក (Dashboard / Students)
+function showSection(section) {
+    document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+    document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
+}
+
+// ៥. បន្ថែមទិន្នន័យសាកល្បងសម្រាប់តេស្ត
+function renderAll() {
+    const studentBody = document.getElementById('studentBody');
+    // ឧទាហរណ៍ទិន្នន័យ
+    studentBody.innerHTML = `
+        <tr><td>សុខ ជា</td><td>ប្រុស</td><td>១២A</td><td>កែមលៀងគា</td><td>40,000 ៛</td><td><button class="btn btn-sm btn-danger">លុប</button></td></tr>
+    `;
+    
+    document.getElementById('statsRow').innerHTML = `
+        <div class="col-md-4"><div class="card p-3 text-center shadow-sm"><h6>សិស្សសរុប</h6><h4>1 នាក់</h4></div></div>
+    `;
 }
 
 function calculateSplit() {
@@ -148,3 +189,4 @@ function showSection(section) {
     document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
     document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
 }
+

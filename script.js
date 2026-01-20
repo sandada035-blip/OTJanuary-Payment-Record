@@ -587,57 +587,6 @@ function printReceipt(index) {
     printWindow.document.close();
 }
 
-let students = JSON.parse(localStorage.getItem("students")) || [];
-
-/* ===== FORMAT CURRENCY ===== */
-function formatKHR(num) {
-  return num.toLocaleString("en-US") + " ៛";
-}
-
-/* ===== UPDATE DASHBOARD ===== */
-function updateDashboard() {
-  let total = 0;
-  students.forEach(s => total += Number(s.fee));
-
-  let t80 = total * 0.8;
-  let t20 = total * 0.2;
-
-  document.getElementById("totalFee").innerText = formatKHR(total);
-  document.getElementById("total80").innerText = formatKHR(t80);
-  document.getElementById("total20").innerText = formatKHR(t20);
-}
-
-/* ===== ADD / UPDATE STUDENT ===== */
-function submitStudent() {
-  const name = addStudentName.value;
-  const gender = addGender.value;
-  const grade = addGrade.value;
-  const teacher = addTeacherSelect.value;
-  const fee = Number(addFee.value);
-
-  students.push({ name, gender, grade, teacher, fee });
-  localStorage.setItem("students", JSON.stringify(students));
-
-  Swal.fire("ជោគជ័យ", "បានរក្សាទុកទិន្នន័យ", "success");
-
-  updateDashboard();
-  renderStudents();
-}
-
-/* ===== REALTIME 80% / 20% IN MODAL ===== */
-addFee.addEventListener("input", () => {
-  let val = Number(addFee.value || 0);
-  disp80.innerText = formatKHR(val * 0.8);
-  disp20.innerText = formatKHR(val * 0.2);
-});
-
-/* ===== LOAD ===== */
-document.addEventListener("DOMContentLoaded", () => {
-  updateDashboard();
-  renderStudents();
-});
-
-
 
 
 

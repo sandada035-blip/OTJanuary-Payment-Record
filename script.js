@@ -1,8 +1,7 @@
 // ១. ទាញទិន្នន័យពី LocalStorage
 let students = JSON.parse(localStorage.getItem('schoolData')) || [];
-const modal = new bootstrap.Modal(document.getElementById('studentModal'));
 
-// ២. ឆែកមើលស្ថានភាព Login ភ្លាមៗពេលបើក Web
+// ២. ពិនិត្យស្ថានភាព Login ភ្លាមៗពេលបើក Web
 window.onload = () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn === 'true') {
@@ -12,14 +11,13 @@ window.onload = () => {
     }
 };
 
-// ៣. មុខងារ Login (Fix: បន្ថែមការរក្សាទុកស្ថានភាព Login)
+// ៣. មុខងារ Login
 function login() {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value.trim();
 
-    // ឆែកឈ្មោះ admin និងលេខសម្ងាត់ 123
     if (user === "admin" && pass === "123") {
-        localStorage.setItem('isLoggedIn', 'true'); // រក្សាទុកស្ថានភាពថាបានចូលរួច
+        localStorage.setItem('isLoggedIn', 'true'); // រក្សាទុកស្ថានភាព Login
         
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -36,7 +34,7 @@ function login() {
         Swal.fire({
             icon: 'error',
             title: 'ឈ្មោះ ឬលេខសម្ងាត់មិនត្រឹមត្រូវ',
-            text: 'សូមព្យាយាមម្ដងទៀត! (admin / 123)',
+            text: 'សូមប្រើប្រាស់ admin និង 123',
             confirmButtonColor: '#0d6efd'
         });
     }
@@ -44,11 +42,17 @@ function login() {
 
 // ៤. មុខងារ Logout
 function logout() {
-    localStorage.removeItem('isLoggedIn'); // លុបស្ថានភាព Login ចេញ
-    location.reload(); // បញ្ជូនទៅទំព័រដើមវិញ
+    localStorage.removeItem('isLoggedIn');
+    location.reload();
 }
 
-// ៥. មុខងារ Search Filter (ស្វែងរកឈ្មោះគ្រូ និង សិស្ស)
+// ៥. មុខងារប្តូរ Section (Dashboard / Students)
+function showSection(section) {
+    document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+    document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
+}
+
+// ៦. មុខងារស្វែងរក (Filter) - ដើរទាំងក្នុងតារាងគ្រូ និងសិស្ស
 function filterTable(tableId, colIndex) {
     const input = event.target;
     const filter = input.value.toLowerCase();
@@ -64,54 +68,7 @@ function filterTable(tableId, colIndex) {
     }
 }
 
-// ៦. មុខងារបង្ហាញ Section (Dashboard / Students)
-function showSection(section) {
-    document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
-    document.getElementById('studentSection').style.display = section === 'students' ? 'block' : 'none';
-}
-
-// ៧. មុខងារគណនាប្រាក់ ៨០% និង ២០%
-function calculateSplit() {
-    const fee = parseFloat(document.getElementById('addFee').value) || 0;
-    document.getElementById('disp80').innerText = (fee * 0.8).toLocaleString() + " ៛";
-    document.getElementById('disp20').innerText = (fee * 0.2).toLocaleString() + " ៛";
-}
-
-// ៨. មុខងារបន្ថែមសិស្ស
-function openStudentModal() {
-    document.getElementById('addStudentName').value = '';
-    document.getElementById('addFee').value = '';
-    document.getElementById('disp80').innerText = '0 ៛';
-    document.getElementById('disp20').innerText = '0 ៛';
-    modal.show();
-}
-
-function submitStudent() {
-    const name = document.getElementById('addStudentName').value.trim();
-    const gender = document.getElementById('addGender').value;
-    const grade = document.getElementById('addGrade').value;
-    const teacher = document.getElementById('addTeacherSelect').value;
-    const fee = parseFloat(document.getElementById('addFee').value) || 0;
-
-    if (!name || fee <= 0) {
-        return Swal.fire('បំពេញព័ត៌មាន', 'សូមបញ្ចូលឈ្មោះសិស្ស និងតម្លៃសិក្សាឱ្យបានត្រឹមត្រូវ', 'warning');
-    }
-
-    students.push({ name, gender, grade, teacher, fee });
-    localStorage.setItem('schoolData', JSON.stringify(students)); // រក្សាទុកទិន្នន័យ
-    
-    modal.hide();
-    renderAll();
-    
-    Swal.fire({
-        icon: 'success',
-        title: 'រក្សាទុកបានជោគជ័យ',
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-
-// ៩. មុខងារបង្ហាញទិន្នន័យលើតារាង
+// ៧. មុខងារបង្ហាញទិន្នន័យលើអេក្រង់
 function renderAll() {
     renderStats();
     renderStudents();
@@ -121,6 +78,7 @@ function renderAll() {
 function renderStudents() {
     const body = document.getElementById('studentBody');
     if (!body) return;
+    
     body.innerHTML = students.map((s, index) => `
         <tr>
             <td>${s.name}</td>
@@ -149,6 +107,7 @@ function renderTeachers() {
 
     const body = document.getElementById('teacherBody');
     if (!body) return;
+    
     body.innerHTML = Object.values(teacherMap).map(t => `
         <tr>
             <td>${t.name}</td>
@@ -176,6 +135,7 @@ function renderStats() {
     }
 }
 
+// ៨. មុខងារលុបសិស្ស
 function deleteStudent(index) {
     Swal.fire({
         title: 'លុបទិន្នន័យសិស្ស?',
